@@ -54,3 +54,49 @@ Components:
 ## Notes
 - The system is designed for educational/demo purposes and currently uses in-memory state; persistence across process restarts is not implemented.
 - No transaction history or multi-user support is present.
+
+## Sequence Diagram (Mermaid)
+```mermaid
+sequenceDiagram
+    participant User
+    participant MainProgram
+    participant Operations
+    participant DataProgram
+
+    User->>MainProgram: start()
+    MainProgram->>User: showMenu()
+    User->>MainProgram: choose(1|2|3|4)
+
+    alt choice is 1 (View Balance)
+        MainProgram->>Operations: call('TOTAL ')
+        Operations->>DataProgram: call('READ')
+        DataProgram-->>Operations: balance
+        Operations-->>MainProgram: balance
+        MainProgram-->>User: display(balance)
+    else choice is 2 (Credit)
+        MainProgram->>Operations: call('CREDIT')
+        Operations->>User: request(amount)
+        User-->>Operations: amount
+        Operations->>DataProgram: call('READ')
+        DataProgram-->>Operations: balance
+        Operations->>DataProgram: call('WRITE', balance + amount)
+        Operations-->>User: display(newBalance)
+    else choice is 3 (Debit)
+        MainProgram->>Operations: call('DEBIT ')
+        Operations->>User: request(amount)
+        User-->>Operations: amount
+        Operations->>DataProgram: call('READ')
+        DataProgram-->>Operations: balance
+        alt balance >= amount
+            Operations->>DataProgram: call('WRITE', balance - amount)
+            Operations-->>User: display(newBalance)
+        else
+            Operations-->>User: display('Insufficient funds')
+        end
+    else choice is 4 (Exit)
+        MainProgram-->>User: display('Goodbye')
+    end
+
+    MainProgram-->>User: loop or exit
+```
+
